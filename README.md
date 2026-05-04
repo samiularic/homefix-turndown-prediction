@@ -1,7 +1,7 @@
 # homefix-turndown-prediction
 Gradient Boosting models predicting financing turn-down probability and approved loan amounts for HomeFix Custom Remodeling. First place winner, Montclair State University Analytics Competition.
 
-HomeFix Experiential Analytics Challenge, First Place Winner
+"HomeFix Experiential Analytics Challenge, First Place Winner"
 A graduate business case competition project built at Montclair State University, Feliciano School of Business, MS Business Analytics program, Spring 2026.
 This project delivers a two-model machine learning system that predicts financing turn-down probability and approved loan amounts for HomeFix Custom Remodeling, a real East Coast exterior remodeling company. The system was built on real company data and won first place among all competing teams, judged by HomeFix's Director of IT.
 
