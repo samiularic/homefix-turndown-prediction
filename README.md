@@ -152,17 +152,3 @@ Three things mattered most:
 1. External data beats internal data when used right. ZIP-level income and home values outranked credit tier as predictors.
 2. The class imbalance was the real challenge. Oversampling the minority class made everything else possible.
 3. Threshold optimization is a business decision, not a technical one. We built the tradeoff table so HomeFix can pick the cutpoint that matches their cost structure.
-
----
-
-## Author
-
-**Aric Mahmood**
-MS Business Analytics, Montclair State University
-[LinkedIn](https://www.linkedin.com/in/yourprofile) | aricm1@montclair.edu
-
----
-
-## Acknowledgments
-
-Thanks to HomeFix Custom Remodeling for providing the dataset and to their Director of IT for judging the competition. Thanks to Montclair State University's Feliciano School of Business for organizing the challenge.
