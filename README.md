@@ -1,84 +1,168 @@
-# homefix-turndown-prediction
-Gradient Boosting models predicting financing turn-down probability and approved loan amounts for HomeFix Custom Remodeling. First place winner, Montclair State University Analytics Competition.
+# HomeFix Experiential Analytics Challenge
 
----
+> First-place winner. Judged by HomeFix's Director of IT.
+> Montclair State University, MS Business Analytics.
 
-# HomeFix Experiential Analytics Challenge, First Place Winner
-A graduate business case competition project built at Montclair State University, Feliciano School of Business, MS Business Analytics program, Spring 2026.
-
-This project delivers a two-model machine learning system that predicts financing turn-down probability and approved loan amounts for HomeFix Custom Remodeling, a real East Coast exterior remodeling company. The system was built on real company data and won first place among all competing teams, judged by HomeFix's Director of IT.
+A machine learning system that predicts financing turn-downs before sales reps leave the office, and identifies upsell opportunities inside approved customers. Built for HomeFix Custom Remodeling.
 
 ---
 
 ## The Problem
-HomeFix runs a high-cost field sales model. Every lead requires a sales rep to physically drive to a customer's home before any financing decision is made. 74% of financing applications were being turned down, meaning 3 out of 4 visits generated zero revenue. No predictive system existed to identify unqualified leads before dispatch.
 
-## What It Does
-On submission of a financing application, the system:
+HomeFix runs a high-cost field sales model. Every lead means a sales rep drives to a customer's home, pitches services, and submits a financing application. All of that happens before anyone knows if the customer will qualify.
 
-Scores each lead with a turn-down risk probability from 0 to 1 before any sales visit is scheduled
-Predicts the actual approved loan amount for qualified customers, surfacing upsell opportunities for customers eligible to borrow more than they requested
+The numbers we found:
 
-1. Flags high-headroom customers for targeted upsell outreach
-2. Enables marketing budget allocation toward high-income, high-value ZIP codes
+- 74% of financing applications were turned down
+- 3 out of 4 sales visits generated zero revenue
+- No system existed to predict turn-downs in advance
 
----
-
-## How It Was Built
-The team merged internal HomeFix application and credit data with external US Census ACS ZIP-level income records and Zillow ZIP-level home value records. Both external sources ranked as stronger predictive signals than internal credit tier data.
-
-A time-based train and test split was applied (October 2024 to October 2025 for training, October 2025 to January 2026 for testing) to simulate real deployment conditions. Class imbalance from the 74% turn-down rate was handled through oversampling of the minority class. Twelve features were engineered from credit, lender, product, and ratio variables.
-
-Two separate models were trained and evaluated independently.
-
-## Architecture
-Raw Data Sources
-      |
-      |-- HomeFix financing applications (3,397 records)
-      |-- Soft pull credit records (81,922 records)
-      |-- US Census ACS ZIP income data (30,411 records)
-      |-- Zillow ZIP home value data (26,300 records)
-      |
-      v
-Feature Engineering and External Data Merge (ZIP-level join)
-      |
-      v
-Time-Based Train / Test Split + Oversampling
-      |
-      |-- Model 1: HistGradientBoostingClassifier
-      |   Turn-down probability score (0 to 1) per lead
-      |
-      |-- Model 2: GradientBoostingRegressor
-          Predicted approved loan amount per qualified customer
+The business question: how do we stop spending money on the wrong customers and find more revenue inside the right ones?
 
 ---
 
-## Model Performance
-Turn-Down Classifier
+## The Data
 
-Flagged 320 out of 490 likely turn-downs in the test set
-Correctly retained 83.68% of approved customers
-Approved Amount Regressor
+We worked with five datasets totalling over 142,000 records:
 
-R-squared: 0.93
-Mean absolute error reduced from $12,775 to $2,496 per customer
-14% MAPE vs 88% baseline, a 74 percentage point improvement
+| Dataset | Records | Source |
+|---|---|---|
+| Finance Applications | 3,397 | HomeFix CRM |
+| Soft Pull Credit Runs | 81,922 | HomeFix CRM |
+| ZIP-Level Median Income | 30,411 | US Census ACS |
+| ZIP-Level Home Values | 26,300 | Zillow ZHVI |
+| Appointments and Leads | 30,000+ | HomeFix CRM |
+
+The HomeFix data is confidential and is not included in this repository. The external Census and Zillow data is publicly available.
+
+---
+
+## The Approach
+
+**1. Defined the target variable**
+Approved and Auto Approved decisions = 1. All other statuses (Counter Offered, Auto Declined, Declined, Withdrawn, Pending) = 0. Modeled only finalized decision records, not pipeline.
+
+**2. Engineered 12 features**
+Combined credit tier, requested amount, downpayment, lender, product, and engineered ratios like income-to-request and downpayment percentage.
+
+**3. Integrated external data**
+Merged US Census income and Zillow home values at the ZIP level. Both became the top signals in the final model.
+
+**4. Time-based train and test split**
+Train: October 2024 to October 2025 (2,717 records). Test: October 2025 to January 2026 (680 records). Oversampled the minority class to handle the 74% imbalance.
+
+---
+
+## The Models
+
+### Model 1: Turn-Down Risk Classifier
+
+A Gradient Boosting Classifier that predicts the probability of turn-down before any visit is scheduled. Each lead receives a risk score from 0 to 1.
+
+**Test set results:**
+- Flagged 320 out of 490 likely turn-downs
+- Correctly retained 83.68% of approved customers
+- Top features: median income (ZIP), product type, home value (ZIP), plan requested
+
+### Model 2: Approved Amount Predictor
+
+A Gradient Boosting Regressor that predicts how much each approved customer is actually eligible to borrow. Surfaces customers who qualify for more than they originally requested.
+
+**Test set results:**
+
+| Metric | Baseline | Our Model | Improvement |
+|---|---|---|---|
+| MAPE | 88.48% | 14.01% | 74.47 pp |
+| MAE | $12,775 | $2,496 | $10,279 |
+| R² | -0.008 | 0.93 | 0.94 |
 
 ---
 
 ## Business Impact
 
-1. $2.7M in top-line revenue preserved by correctly retaining approved customers
-2. $913K in untapped financing capacity identified across 178 customers for upsell
-3. $168K total net economic impact from avoided wasted visits and new upsell revenue
-4. Enabled smarter dispatch, targeted upsell, and ZIP-level marketing reallocation
+| Metric | Value |
+|---|---|
+| Top-line revenue preserved | $2.7M |
+| Untapped financing capacity identified | $913K |
+| Net economic impact | $168K |
+| Customers flagged for upsell | 178 |
+
+What the system enables in practice:
+
+- **Smarter dispatch**: Sales reps see a risk score before driving to a home
+- **Targeted upsell**: High-headroom customers flagged for larger financing offers
+- **Better lead buying**: Marketing budget shifts toward high-income, high-value ZIPs
 
 ---
 
 ## Tech Stack
-LayerToolData wrangling and feature engineeringPython 3.12, pandas, NumPyMachine learning modelsscikit-learn (HistGradientBoostingClassifier, GradientBoostingRegressor, LogisticRegression)Excel integrationopenpyxlDevelopment environmentGoogle Colab, Jupyter NotebookVersion controlGit, GitHubPresentationMicrosoft PowerPoint, Canva
+
+- **Language**: Python 3.12
+- **Libraries**: pandas, numpy, scikit-learn, openpyxl
+- **Models**: HistGradientBoostingClassifier, GradientBoostingRegressor, LogisticRegression
+- **Tools**: Google Colab, Jupyter, Git
 
 ---
 
-## Outcome
-First place winner among all competing MS Business Analytics teams at Montclair State University. Judged by HomeFix's Director of IT.
+## Repository Structure
+
+```
+homefix-analytics-challenge/
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── src/
+│   └── hcr_analysis.py
+├── notebooks/
+│   └── hcr_analysis.ipynb
+├── presentation/
+│   ├── HomeFix_Project_Recap.pptx
+│   └── HomeFix_Project_Recap.pdf
+└── data/
+    └── README.md   (data not included, confidential)
+```
+
+---
+
+## How to Run
+
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/homefix-analytics-challenge.git
+cd homefix-analytics-challenge
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Place the HomeFix data files in the data/ folder
+# (data is not included for confidentiality)
+
+# Run the analysis
+python src/hcr_analysis.py
+```
+
+---
+
+## Key Takeaways
+
+The biggest lesson had nothing to do with the models. Companies care about profit, not methodology. If you cannot connect your analysis to a dollar figure, you have not finished the job.
+
+Three things mattered most:
+
+1. External data beats internal data when used right. ZIP-level income and home values outranked credit tier as predictors.
+2. The class imbalance was the real challenge. Oversampling the minority class made everything else possible.
+3. Threshold optimization is a business decision, not a technical one. We built the tradeoff table so HomeFix can pick the cutpoint that matches their cost structure.
+
+---
+
+## Author
+
+**Aric Mahmood**
+MS Business Analytics, Montclair State University
+[LinkedIn](https://www.linkedin.com/in/yourprofile) | aricm1@montclair.edu
+
+---
+
+## Acknowledgments
+
+Thanks to HomeFix Custom Remodeling for providing the dataset and to their Director of IT for judging the competition. Thanks to Montclair State University's Feliciano School of Business for organizing the challenge.
